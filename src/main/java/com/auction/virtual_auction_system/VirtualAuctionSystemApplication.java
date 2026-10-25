@@ -9,5 +9,4 @@ public class VirtualAuctionSystemApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(VirtualAuctionSystemApplication.class, args);
 	}
-
 }
