@@ -1,12 +1,8 @@
 package com.auction.virtual_auction_system.entity;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "users")
 @AllArgsConstructor
