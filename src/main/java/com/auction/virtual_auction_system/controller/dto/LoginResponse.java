@@ -10,7 +10,7 @@ public class LoginResponse {
 
     public LoginResponse(String email, String token, String role) {
         this.email = email;
-        this.token = token;
+        this.token=token;
         this.role = role;
     }
 

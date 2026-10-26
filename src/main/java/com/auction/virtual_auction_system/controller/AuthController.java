@@ -54,8 +54,8 @@ public class AuthController {
         User user = userService.findByEmail(request.getEmail());
         return ResponseEntity.ok(
                 new LoginResponse(
-                        token,
                         user.getEmail(),
+                        token,
                         user.getRole().name()
                 )
         );
