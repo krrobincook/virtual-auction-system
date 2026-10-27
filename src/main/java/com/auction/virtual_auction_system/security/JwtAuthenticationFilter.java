@@ -9,6 +9,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,6 +19,9 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter
         extends OncePerRequestFilter {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtService jwtService;
 
@@ -43,15 +48,20 @@ public class JwtAuthenticationFilter
          * continue without authentication.
          */
         if (authHeader == null
-                || !authHeader.startsWith("Bearer ")) {
+                || !authHeader.regionMatches(
+                true, 0, "Bearer ", 0, "Bearer ".length())) {
 
             filterChain.doFilter(request, response);
             return;
         }
 
         // Remove "Bearer " from token
-        final String jwt =
-                authHeader.substring(7);
+        final String jwt = authHeader.substring("Bearer ".length()).trim();
+
+        if (jwt.isBlank()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
 
@@ -107,6 +117,12 @@ public class JwtAuthenticationFilter
             }
 
         } catch (Exception e) {
+
+            logger.warn(
+                    "JWT authentication failed for {}: {}",
+                    request.getRequestURI(),
+                    e.getMessage()
+            );
 
             /*
              * Invalid/expired JWT.

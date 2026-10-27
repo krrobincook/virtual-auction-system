@@ -97,6 +97,26 @@ public class SecurityConfig {
                         )
                 )
 
+                // Return useful JSON responses for API security failures.
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, exception) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"error\":\"Unauthorized\","
+                                            + "\"message\":\"Missing or invalid bearer token\"}"
+                            );
+                        })
+                        .accessDeniedHandler((request, response, exception) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"error\":\"Forbidden\","
+                                            + "\"message\":\"Authenticated user is not allowed to access this resource\"}"
+                            );
+                        })
+                )
+
                 // Configure which endpoints are public
                 .authorizeHttpRequests(auth -> auth
 
