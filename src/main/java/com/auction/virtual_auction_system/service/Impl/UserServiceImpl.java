@@ -2,6 +2,7 @@ package com.auction.virtual_auction_system.service.Impl;
 
 import com.auction.virtual_auction_system.entity.Role;
 import com.auction.virtual_auction_system.entity.User;
+import com.auction.virtual_auction_system.exception.ResourceNotFoundException;
 import com.auction.virtual_auction_system.repository.UserRepository;
 import com.auction.virtual_auction_system.service.UserService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -52,7 +53,8 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(
-                        () -> new RuntimeException("User not found")
+                        () -> new ResourceNotFoundException(
+                                "User not found with email: " + email)
                 );
     }
 }
