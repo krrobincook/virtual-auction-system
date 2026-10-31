@@ -8,12 +8,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import jakarta.persistence.LockModeType;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
     List<Auction> findBySellerId(Long sellerId);
     List<Auction> findByStatus(AuctionStatus status);
+    List<Auction> findByStatusAndStartTimeLessThanEqual(
+            AuctionStatus status,
+            LocalDateTime time);
+    List<Auction> findByStatusAndEndTimeLessThanEqual(
+            AuctionStatus status,
+            LocalDateTime time);
     List<Auction> findAllByOrderByCreatedAtDesc();
 
     /**

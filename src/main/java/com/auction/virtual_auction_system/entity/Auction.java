@@ -81,16 +81,25 @@ public class Auction {
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
 
         if (currentPrice == null) {
             currentPrice = startingPrice;
         }
 
-        if (startTime != null && LocalDateTime.now().isBefore(startTime)) {
-            status = AuctionStatus.PENDING;
-        } else {
-            status = AuctionStatus.ACTIVE;
+        // Preserve the status selected by the service. This is important for
+        // auctions created after their end time, which must remain ENDED.
+        if (status == null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (startTime != null && now.isBefore(startTime)) {
+                status = AuctionStatus.PENDING;
+            } else if (endTime != null && !now.isBefore(endTime)) {
+                status = AuctionStatus.ENDED;
+            } else {
+                status = AuctionStatus.ACTIVE;
+            }
         }
     }
 
