@@ -23,6 +23,12 @@ public class AuctionRequest {
     )
     private BigDecimal startingPrice;
 
+    @DecimalMin(
+            value = "0.00",
+            message = "Minimum increment cannot be negative"
+    )
+    private BigDecimal minimumIncrement;
+
     @NotNull(message = "Start time is required")
     @Future(message = "Start time must be in the future")
     private LocalDateTime startTime;
@@ -40,9 +46,20 @@ public class AuctionRequest {
             BigDecimal startingPrice,
             LocalDateTime startTime,
             LocalDateTime endTime) {
+        this(title, description, startingPrice, null, startTime, endTime);
+    }
+
+    public AuctionRequest(
+            String title,
+            String description,
+            BigDecimal startingPrice,
+            BigDecimal minimumIncrement,
+            LocalDateTime startTime,
+            LocalDateTime endTime) {
         this.title = title;
         this.description = description;
         this.startingPrice = startingPrice;
+        this.minimumIncrement = minimumIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -69,6 +86,14 @@ public class AuctionRequest {
 
     public void setStartingPrice(BigDecimal startingPrice) {
         this.startingPrice = startingPrice;
+    }
+
+    public BigDecimal getMinimumIncrement() {
+        return minimumIncrement;
+    }
+
+    public void setMinimumIncrement(BigDecimal minimumIncrement) {
+        this.minimumIncrement = minimumIncrement;
     }
 
     public LocalDateTime getStartTime() {

@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -54,6 +55,8 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setDescription(request.getDescription());
         auction.setStartingPrice(request.getStartingPrice());
         auction.setCurrentPrice(request.getStartingPrice());
+        auction.setMinimumIncrement(normalizeMinimumIncrement(
+                request.getMinimumIncrement()));
         auction.setStartTime(request.getStartTime());
         auction.setEndTime(request.getEndTime());
         auction.setStatus(determineInitialStatus(
@@ -100,6 +103,9 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setDescription(request.getDescription());
         auction.setStartingPrice(request.getStartingPrice());
         auction.setCurrentPrice(request.getStartingPrice());
+        auction.setMinimumIncrement(normalizeMinimumIncrement(
+                request.getMinimumIncrement()));
+        auction.setWinner(null);
         auction.setStartTime(request.getStartTime());
         auction.setEndTime(request.getEndTime());
         auction.setStatus(determineInitialStatus(
@@ -125,18 +131,19 @@ public class AuctionServiceImpl implements AuctionService {
         auctionRepository.save(auction);
 
         if (eventPublisher != null) {
-            eventPublisher.publishEvent(new AuctionUpdateEvent(
-                    new AuctionUpdateMessage(
-                            AuctionEventType.AUCTION_CANCELLED,
-                            auction.getId(),
-                            auction.getCurrentPrice(),
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            auction.getStatus(),
-                            LocalDateTime.now())));
+            AuctionUpdateMessage message = new AuctionUpdateMessage(
+                    AuctionEventType.AUCTION_CANCELLED,
+                    auction.getId(),
+                    auction.getCurrentPrice(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    auction.getStatus(),
+                    LocalDateTime.now());
+            message.setMinimumIncrement(auction.getMinimumIncrement());
+            eventPublisher.publishEvent(new AuctionUpdateEvent(message));
         }
     }
 
@@ -198,12 +205,29 @@ public class AuctionServiceImpl implements AuctionService {
         response.setDescription(auction.getDescription());
         response.setStartingPrice(auction.getStartingPrice());
         response.setCurrentPrice(auction.getCurrentPrice());
+        response.setMinimumIncrement(normalizeMinimumIncrement(
+                auction.getMinimumIncrement()));
         response.setStartTime(auction.getStartTime());
         response.setEndTime(auction.getEndTime());
         response.setStatus(auction.getStatus());
         response.setSellerId(auction.getSeller().getId());
         response.setSellerName(auction.getSeller().getName());
+        if (auction.getWinner() != null) {
+            response.setWinnerId(auction.getWinner().getId());
+            response.setWinnerName(auction.getWinner().getName());
+        }
         response.setCreatedAt(auction.getCreatedAt());
         return response;
+    }
+
+    private BigDecimal normalizeMinimumIncrement(BigDecimal minimumIncrement) {
+        if (minimumIncrement == null) {
+            return BigDecimal.ZERO;
+        }
+        if (minimumIncrement.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "Minimum increment cannot be negative");
+        }
+        return minimumIncrement;
     }
 }

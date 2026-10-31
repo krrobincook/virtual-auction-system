@@ -4,8 +4,10 @@ import com.auction.virtual_auction_system.controller.dto.AuctionUpdateMessage;
 import com.auction.virtual_auction_system.entity.Auction;
 import com.auction.virtual_auction_system.entity.AuctionEventType;
 import com.auction.virtual_auction_system.entity.AuctionStatus;
+import com.auction.virtual_auction_system.entity.Bid;
 import com.auction.virtual_auction_system.event.AuctionUpdateEvent;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
+import com.auction.virtual_auction_system.repository.BidRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +28,7 @@ public class AuctionScheduler {
     private static final long STATUS_UPDATE_INTERVAL_MILLIS = 60_000L;
 
     private final AuctionRepository auctionRepository;
+    private BidRepository bidRepository;
     private ApplicationEventPublisher eventPublisher;
 
     public AuctionScheduler(AuctionRepository auctionRepository) {
@@ -35,6 +38,11 @@ public class AuctionScheduler {
     @Autowired
     public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
+    }
+
+    @Autowired
+    public void setBidRepository(BidRepository bidRepository) {
+        this.bidRepository = bidRepository;
     }
 
     /**
@@ -61,6 +69,7 @@ public class AuctionScheduler {
             if (auction.getEndTime() != null
                     && !now.isBefore(auction.getEndTime())) {
                 auction.setStatus(AuctionStatus.ENDED);
+                recordWinner(auction);
                 events.add(eventFor(
                         AuctionEventType.AUCTION_ENDED, auction, now));
             } else {
@@ -75,6 +84,7 @@ public class AuctionScheduler {
                 .findByStatusAndEndTimeLessThanEqual(
                         AuctionStatus.ACTIVE, now)) {
             auction.setStatus(AuctionStatus.ENDED);
+            recordWinner(auction);
             changedAuctions.add(auction);
             events.add(eventFor(
                     AuctionEventType.AUCTION_ENDED, auction, now));
@@ -92,17 +102,34 @@ public class AuctionScheduler {
             AuctionEventType eventType,
             Auction auction,
             LocalDateTime timestamp) {
-        return new AuctionUpdateEvent(
-                new AuctionUpdateMessage(
-                        eventType,
-                        auction.getId(),
-                        auction.getCurrentPrice(),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        auction.getStatus(),
-                        timestamp));
+        AuctionUpdateMessage message = new AuctionUpdateMessage(
+                eventType,
+                auction.getId(),
+                auction.getCurrentPrice(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                auction.getStatus(),
+                timestamp);
+        message.setMinimumIncrement(auction.getMinimumIncrement());
+        if (auction.getWinner() != null) {
+            message.setWinnerId(auction.getWinner().getId());
+            message.setWinnerName(auction.getWinner().getName());
+        }
+        return new AuctionUpdateEvent(message);
+    }
+
+    private void recordWinner(Auction auction) {
+        if (bidRepository == null || auction.getId() == null) {
+            auction.setWinner(null);
+            return;
+        }
+
+        Bid winningBid = bidRepository
+                .findTopByAuctionIdOrderByAmountDesc(auction.getId())
+                .orElse(null);
+        auction.setWinner(winningBid == null ? null : winningBid.getBidder());
     }
 }

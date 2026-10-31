@@ -36,6 +36,9 @@ public class Auction {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal currentPrice;
 
+    @Column(precision = 15, scale = 2)
+    private BigDecimal minimumIncrement;
+
     @Column(nullable = false)
     private LocalDateTime startTime;
 
@@ -49,6 +52,10 @@ public class Auction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winner_id")
+    private User winner;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -143,6 +150,14 @@ public class Auction {
         this.currentPrice = currentPrice;
     }
 
+    public BigDecimal getMinimumIncrement() {
+        return minimumIncrement;
+    }
+
+    public void setMinimumIncrement(BigDecimal minimumIncrement) {
+        this.minimumIncrement = minimumIncrement;
+    }
+
     public LocalDateTime getStartTime() {
         return startTime;
     }
@@ -173,6 +188,14 @@ public class Auction {
 
     public void setSeller(User seller) {
         this.seller = seller;
+    }
+
+    public User getWinner() {
+        return winner;
+    }
+
+    public void setWinner(User winner) {
+        this.winner = winner;
     }
 
     public LocalDateTime getCreatedAt() {

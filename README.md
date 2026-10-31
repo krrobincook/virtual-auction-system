@@ -16,6 +16,7 @@ The Virtual Auction System is a Spring Boot backend for conducting online auctio
 - Bidding history
 - Highest-bid lookup
 - Transactional concurrent-bid protection with database locking
+- Configurable minimum bid increments and winner recording when auctions end
 - Real-time WebSocket/STOMP auction updates
 - Global exception handling with consistent JSON error responses
 - API documentation in this README
@@ -146,6 +147,7 @@ Example auction body:
   "title": "Vintage Camera",
   "description": "A collectible film camera",
   "startingPrice": 30000.00,
+  "minimumIncrement": 500.00,
   "startTime": "2026-11-01T10:00:00",
   "endTime": "2026-11-01T18:00:00"
 }
@@ -182,7 +184,15 @@ Subscribe to an auction-specific topic:
 /topic/auctions/{auctionId}
 ```
 
-The server publishes `BID_PLACED`, `AUCTION_STARTED`, `AUCTION_ENDED`, and `AUCTION_CANCELLED` messages. A bid event includes the auction ID, bid ID, bidder name, bid amount, current price, status, bid time, and event timestamp. Clients can subscribe to multiple auction topics simultaneously.
+The STOMP `CONNECT` frame must include the JWT as a native header:
+
+```text
+Authorization: Bearer <JWT_TOKEN>
+```
+
+Only authenticated clients can subscribe, and subscriptions are limited to auction-specific topics such as `/topic/auctions/42`. The server publishes `BID_PLACED`, `AUCTION_STARTED`, `AUCTION_ENDED`, and `AUCTION_CANCELLED` messages. End events include the recorded winner when the auction has at least one bid. Clients can subscribe to multiple auction topics simultaneously.
+
+Reconnect behavior is stateless: after a disconnect, the client should reconnect to `/ws` with a fresh valid JWT `CONNECT` header, resubscribe to each auction topic, and re-fetch `GET /api/auctions/{id}` to resynchronize authoritative status, current price, and winner data. Missed WebSocket events are not treated as the source of truth.
 
 ## Error Responses
 

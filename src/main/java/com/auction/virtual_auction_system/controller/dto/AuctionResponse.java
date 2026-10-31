@@ -12,11 +12,14 @@ public class AuctionResponse {
     private String description;
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
+    private BigDecimal minimumIncrement;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private AuctionStatus status;
     private Long sellerId;
     private String sellerName;
+    private Long winnerId;
+    private String winnerName;
     private LocalDateTime createdAt;
 
     public AuctionResponse() {
@@ -87,6 +90,14 @@ public class AuctionResponse {
         this.currentPrice = currentPrice;
     }
 
+    public BigDecimal getMinimumIncrement() {
+        return minimumIncrement;
+    }
+
+    public void setMinimumIncrement(BigDecimal minimumIncrement) {
+        this.minimumIncrement = minimumIncrement;
+    }
+
     public LocalDateTime getStartTime() {
         return startTime;
     }
@@ -125,6 +136,22 @@ public class AuctionResponse {
 
     public void setSellerName(String sellerName) {
         this.sellerName = sellerName;
+    }
+
+    public Long getWinnerId() {
+        return winnerId;
+    }
+
+    public void setWinnerId(Long winnerId) {
+        this.winnerId = winnerId;
+    }
+
+    public String getWinnerName() {
+        return winnerName;
+    }
+
+    public void setWinnerName(String winnerName) {
+        this.winnerName = winnerName;
     }
 
     public LocalDateTime getCreatedAt() {

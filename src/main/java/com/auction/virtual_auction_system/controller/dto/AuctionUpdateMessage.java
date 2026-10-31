@@ -12,12 +12,15 @@ public class AuctionUpdateMessage {
     private AuctionEventType eventType;
     private Long auctionId;
     private BigDecimal currentPrice;
+    private BigDecimal minimumIncrement;
     private Long bidId;
     private Long bidderId;
     private String bidderName;
     private BigDecimal bidAmount;
     private LocalDateTime bidTime;
     private AuctionStatus auctionStatus;
+    private Long winnerId;
+    private String winnerName;
     private LocalDateTime timestamp;
 
     public AuctionUpdateMessage() {
@@ -70,6 +73,14 @@ public class AuctionUpdateMessage {
         this.currentPrice = currentPrice;
     }
 
+    public BigDecimal getMinimumIncrement() {
+        return minimumIncrement;
+    }
+
+    public void setMinimumIncrement(BigDecimal minimumIncrement) {
+        this.minimumIncrement = minimumIncrement;
+    }
+
     public Long getBidId() {
         return bidId;
     }
@@ -116,6 +127,22 @@ public class AuctionUpdateMessage {
 
     public void setAuctionStatus(AuctionStatus auctionStatus) {
         this.auctionStatus = auctionStatus;
+    }
+
+    public Long getWinnerId() {
+        return winnerId;
+    }
+
+    public void setWinnerId(Long winnerId) {
+        this.winnerId = winnerId;
+    }
+
+    public String getWinnerName() {
+        return winnerName;
+    }
+
+    public void setWinnerName(String winnerName) {
+        this.winnerName = winnerName;
     }
 
     public LocalDateTime getTimestamp() {

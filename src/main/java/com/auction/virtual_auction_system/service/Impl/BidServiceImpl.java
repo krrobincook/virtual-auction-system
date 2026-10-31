@@ -103,10 +103,25 @@ public class BidServiceImpl implements BidService {
             throw new InvalidBidException(
                     "Auction current price is not available");
         }
-        if (request.getAmount().compareTo(currentPrice) <= 0) {
+
+        BigDecimal minimumIncrement = auction.getMinimumIncrement();
+        if (minimumIncrement == null) {
+            minimumIncrement = BigDecimal.ZERO;
+        }
+        if (minimumIncrement.compareTo(BigDecimal.ZERO) < 0) {
             throw new InvalidBidException(
-                    "Bid amount must be greater than the current price of "
-                            + currentPrice);
+                    "Auction minimum increment is invalid");
+        }
+
+        BigDecimal minimumAllowedAmount = currentPrice.add(minimumIncrement);
+        boolean belowMinimum = request.getAmount()
+                .compareTo(minimumAllowedAmount) < 0;
+        boolean unchangedWhenNoIncrement = minimumIncrement.signum() == 0
+                && request.getAmount().compareTo(currentPrice) <= 0;
+        if (belowMinimum || unchangedWhenNoIncrement) {
+            throw new InvalidBidException(
+                    "Bid amount must be at least " + minimumAllowedAmount
+                            + " (current price plus minimum increment)");
         }
 
         Bid bid = new Bid();
@@ -135,18 +150,19 @@ public class BidServiceImpl implements BidService {
             return;
         }
 
-        eventPublisher.publishEvent(new AuctionUpdateEvent(
-                new AuctionUpdateMessage(
-                        AuctionEventType.BID_PLACED,
-                        auction.getId(),
-                        auction.getCurrentPrice(),
-                        bid.getId(),
-                        bid.getBidder().getId(),
-                        bid.getBidder().getName(),
-                        bid.getAmount(),
-                        bid.getBidTime(),
-                        auction.getStatus(),
-                        now)));
+        AuctionUpdateMessage message = new AuctionUpdateMessage(
+                AuctionEventType.BID_PLACED,
+                auction.getId(),
+                auction.getCurrentPrice(),
+                bid.getId(),
+                bid.getBidder().getId(),
+                bid.getBidder().getName(),
+                bid.getAmount(),
+                bid.getBidTime(),
+                auction.getStatus(),
+                now);
+        message.setMinimumIncrement(auction.getMinimumIncrement());
+        eventPublisher.publishEvent(new AuctionUpdateEvent(message));
     }
 
     @Override
