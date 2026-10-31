@@ -126,7 +126,9 @@ public class SecurityConfig {
 
                         // Test endpoint
                         .requestMatchers(
-                                "/api/hello"
+                                "/api/hello",
+                                "/ws",
+                                "/ws/**"
                         ).permitAll()
 
                         // Everything else requires authentication

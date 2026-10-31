@@ -1,8 +1,13 @@
 package com.auction.virtual_auction_system.service;
 
+import com.auction.virtual_auction_system.controller.dto.AuctionUpdateMessage;
 import com.auction.virtual_auction_system.entity.Auction;
+import com.auction.virtual_auction_system.entity.AuctionEventType;
 import com.auction.virtual_auction_system.entity.AuctionStatus;
+import com.auction.virtual_auction_system.event.AuctionUpdateEvent;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +26,15 @@ public class AuctionScheduler {
     private static final long STATUS_UPDATE_INTERVAL_MILLIS = 60_000L;
 
     private final AuctionRepository auctionRepository;
+    private ApplicationEventPublisher eventPublisher;
 
     public AuctionScheduler(AuctionRepository auctionRepository) {
         this.auctionRepository = auctionRepository;
+    }
+
+    @Autowired
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -42,6 +53,7 @@ public class AuctionScheduler {
      */
     void updateAuctionStatuses(LocalDateTime now) {
         List<Auction> changedAuctions = new ArrayList<>();
+        List<AuctionUpdateEvent> events = new ArrayList<>();
 
         for (Auction auction : auctionRepository
                 .findByStatusAndStartTimeLessThanEqual(
@@ -49,8 +61,12 @@ public class AuctionScheduler {
             if (auction.getEndTime() != null
                     && !now.isBefore(auction.getEndTime())) {
                 auction.setStatus(AuctionStatus.ENDED);
+                events.add(eventFor(
+                        AuctionEventType.AUCTION_ENDED, auction, now));
             } else {
                 auction.setStatus(AuctionStatus.ACTIVE);
+                events.add(eventFor(
+                        AuctionEventType.AUCTION_STARTED, auction, now));
             }
             changedAuctions.add(auction);
         }
@@ -60,10 +76,33 @@ public class AuctionScheduler {
                         AuctionStatus.ACTIVE, now)) {
             auction.setStatus(AuctionStatus.ENDED);
             changedAuctions.add(auction);
+            events.add(eventFor(
+                    AuctionEventType.AUCTION_ENDED, auction, now));
         }
 
         if (!changedAuctions.isEmpty()) {
             auctionRepository.saveAll(changedAuctions);
+            if (eventPublisher != null) {
+                events.forEach(eventPublisher::publishEvent);
+            }
         }
+    }
+
+    private AuctionUpdateEvent eventFor(
+            AuctionEventType eventType,
+            Auction auction,
+            LocalDateTime timestamp) {
+        return new AuctionUpdateEvent(
+                new AuctionUpdateMessage(
+                        eventType,
+                        auction.getId(),
+                        auction.getCurrentPrice(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        auction.getStatus(),
+                        timestamp));
     }
 }

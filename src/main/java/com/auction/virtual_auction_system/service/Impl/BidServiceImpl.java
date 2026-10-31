@@ -2,18 +2,23 @@ package com.auction.virtual_auction_system.service.Impl;
 
 import com.auction.virtual_auction_system.controller.dto.BidRequest;
 import com.auction.virtual_auction_system.controller.dto.BidResponse;
+import com.auction.virtual_auction_system.controller.dto.AuctionUpdateMessage;
 import com.auction.virtual_auction_system.entity.Auction;
+import com.auction.virtual_auction_system.entity.AuctionEventType;
 import com.auction.virtual_auction_system.entity.AuctionStatus;
 import com.auction.virtual_auction_system.entity.Bid;
 import com.auction.virtual_auction_system.entity.User;
 import com.auction.virtual_auction_system.exception.AuctionNotActiveException;
 import com.auction.virtual_auction_system.exception.InvalidBidException;
 import com.auction.virtual_auction_system.exception.ResourceNotFoundException;
+import com.auction.virtual_auction_system.event.AuctionUpdateEvent;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
 import com.auction.virtual_auction_system.repository.BidRepository;
 import com.auction.virtual_auction_system.service.BidService;
 import com.auction.virtual_auction_system.service.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -27,6 +32,7 @@ public class BidServiceImpl implements BidService {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     private final UserService userService;
+    private ApplicationEventPublisher eventPublisher;
 
     public BidServiceImpl(
             BidRepository bidRepository,
@@ -35,6 +41,11 @@ public class BidServiceImpl implements BidService {
         this.bidRepository = bidRepository;
         this.auctionRepository = auctionRepository;
         this.userService = userService;
+    }
+
+    @Autowired
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -111,7 +122,31 @@ public class BidServiceImpl implements BidService {
         auctionRepository.save(auction);
         // Earlier Bid rows remain immutable bidding history.
 
+        publishBidPlacedEvent(savedBid, auction, now);
+
         return mapToResponse(savedBid);
+    }
+
+    private void publishBidPlacedEvent(
+            Bid bid,
+            Auction auction,
+            LocalDateTime now) {
+        if (eventPublisher == null) {
+            return;
+        }
+
+        eventPublisher.publishEvent(new AuctionUpdateEvent(
+                new AuctionUpdateMessage(
+                        AuctionEventType.BID_PLACED,
+                        auction.getId(),
+                        auction.getCurrentPrice(),
+                        bid.getId(),
+                        bid.getBidder().getId(),
+                        bid.getBidder().getName(),
+                        bid.getAmount(),
+                        bid.getBidTime(),
+                        auction.getStatus(),
+                        now)));
     }
 
     @Override

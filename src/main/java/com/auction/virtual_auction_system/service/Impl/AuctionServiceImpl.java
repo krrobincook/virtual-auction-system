@@ -2,16 +2,21 @@ package com.auction.virtual_auction_system.service.Impl;
 
 import com.auction.virtual_auction_system.controller.dto.AuctionRequest;
 import com.auction.virtual_auction_system.controller.dto.AuctionResponse;
+import com.auction.virtual_auction_system.controller.dto.AuctionUpdateMessage;
 import com.auction.virtual_auction_system.entity.Auction;
+import com.auction.virtual_auction_system.entity.AuctionEventType;
 import com.auction.virtual_auction_system.entity.AuctionStatus;
 import com.auction.virtual_auction_system.entity.User;
 import com.auction.virtual_auction_system.exception.ResourceNotFoundException;
 import com.auction.virtual_auction_system.exception.UnauthorizedAuctionActionException;
+import com.auction.virtual_auction_system.event.AuctionUpdateEvent;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
 import com.auction.virtual_auction_system.service.AuctionService;
 import com.auction.virtual_auction_system.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,12 +26,18 @@ public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
     private final UserService userService;
+    private ApplicationEventPublisher eventPublisher;
 
     public AuctionServiceImpl(
             AuctionRepository auctionRepository,
             UserService userService) {
         this.auctionRepository = auctionRepository;
         this.userService = userService;
+    }
+
+    @Autowired
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -112,6 +123,21 @@ public class AuctionServiceImpl implements AuctionService {
 
         auction.setStatus(AuctionStatus.CANCELLED);
         auctionRepository.save(auction);
+
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new AuctionUpdateEvent(
+                    new AuctionUpdateMessage(
+                            AuctionEventType.AUCTION_CANCELLED,
+                            auction.getId(),
+                            auction.getCurrentPrice(),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            auction.getStatus(),
+                            LocalDateTime.now())));
+        }
     }
 
     private Auction findAuction(Long id) {

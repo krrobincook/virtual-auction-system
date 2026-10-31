@@ -2,9 +2,12 @@ package com.auction.virtual_auction_system.service;
 
 import com.auction.virtual_auction_system.entity.Auction;
 import com.auction.virtual_auction_system.entity.AuctionStatus;
+import com.auction.virtual_auction_system.event.AuctionUpdateEvent;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -16,6 +19,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class AuctionSchedulerTest {
@@ -23,8 +28,16 @@ class AuctionSchedulerTest {
     @Mock
     private AuctionRepository auctionRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private AuctionScheduler auctionScheduler;
+
+    @BeforeEach
+    void setUp() {
+        auctionScheduler.setEventPublisher(eventPublisher);
+    }
 
     @Test
     void activatesPendingAuctionsAtStartTimeAndEndsExpiredAuctions() {
@@ -47,6 +60,7 @@ class AuctionSchedulerTest {
         ArgumentCaptor<List<Auction>> captor = ArgumentCaptor.forClass(List.class);
         verify(auctionRepository).saveAll(captor.capture());
         assertThat(captor.getValue()).containsExactly(pending, active);
+        verify(eventPublisher, times(2)).publishEvent(any(AuctionUpdateEvent.class));
     }
 
     @Test
@@ -64,6 +78,7 @@ class AuctionSchedulerTest {
 
         assertThat(expiredPending.getStatus()).isEqualTo(AuctionStatus.ENDED);
         verify(auctionRepository).saveAll(List.of(expiredPending));
+        verify(eventPublisher).publishEvent(any(AuctionUpdateEvent.class));
     }
 
     private Auction auctionWithTimes(
