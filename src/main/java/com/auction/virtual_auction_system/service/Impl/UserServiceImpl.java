@@ -2,6 +2,7 @@ package com.auction.virtual_auction_system.service.Impl;
 
 import com.auction.virtual_auction_system.entity.Role;
 import com.auction.virtual_auction_system.entity.User;
+import com.auction.virtual_auction_system.exception.DuplicateResourceException;
 import com.auction.virtual_auction_system.exception.ResourceNotFoundException;
 import com.auction.virtual_auction_system.repository.UserRepository;
 import com.auction.virtual_auction_system.service.UserService;
@@ -23,7 +24,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(User user) {
         if(userRepository.existsByEmail(user.getEmail())){
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException("Email already registered");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));

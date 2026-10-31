@@ -6,6 +6,7 @@ import com.auction.virtual_auction_system.entity.Auction;
 import com.auction.virtual_auction_system.entity.AuctionStatus;
 import com.auction.virtual_auction_system.entity.User;
 import com.auction.virtual_auction_system.exception.ResourceNotFoundException;
+import com.auction.virtual_auction_system.exception.UnauthorizedAuctionActionException;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
 import com.auction.virtual_auction_system.service.AuctionService;
 import com.auction.virtual_auction_system.service.UserService;
@@ -128,7 +129,7 @@ public class AuctionServiceImpl implements AuctionService {
                 || auction.getSeller() == null
                 || !sellerEmail.equalsIgnoreCase(
                 auction.getSeller().getEmail())) {
-            throw new IllegalStateException(
+            throw new UnauthorizedAuctionActionException(
                     "You are not allowed to modify this auction");
         }
     }

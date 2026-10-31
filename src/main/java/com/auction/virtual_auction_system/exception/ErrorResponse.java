@@ -1,6 +1,7 @@
 package com.auction.virtual_auction_system.exception;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public class ErrorResponse {
 
@@ -9,6 +10,7 @@ public class ErrorResponse {
     private String error;
     private String message;
     private String path;
+    private Map<String, String> validationErrors;
 
     public ErrorResponse() {
     }
@@ -44,5 +46,13 @@ public class ErrorResponse {
 
     public String getPath() {
         return path;
+    }
+
+    public Map<String, String> getValidationErrors() {
+        return validationErrors;
+    }
+
+    public void setValidationErrors(Map<String, String> validationErrors) {
+        this.validationErrors = validationErrors;
     }
 }

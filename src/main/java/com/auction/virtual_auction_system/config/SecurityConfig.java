@@ -1,4 +1,5 @@
 package com.auction.virtual_auction_system.config;
+import com.auction.virtual_auction_system.exception.ApiErrorResponseWriter;
 import com.auction.virtual_auction_system.security.JwtAuthenticationFilter;
 import com.auction.virtual_auction_system.service.UserService;
 import org.springframework.context.annotation.Bean;
@@ -100,20 +101,18 @@ public class SecurityConfig {
                 // Return useful JSON responses for API security failures.
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> {
-                            response.setStatus(401);
-                            response.setContentType("application/json");
-                            response.getWriter().write(
-                                    "{\"error\":\"Unauthorized\","
-                                            + "\"message\":\"Missing or invalid bearer token\"}"
-                            );
+                            ApiErrorResponseWriter.write(
+                                    request,
+                                    response,
+                                    org.springframework.http.HttpStatus.UNAUTHORIZED,
+                                    "Authentication required");
                         })
                         .accessDeniedHandler((request, response, exception) -> {
-                            response.setStatus(403);
-                            response.setContentType("application/json");
-                            response.getWriter().write(
-                                    "{\"error\":\"Forbidden\","
-                                            + "\"message\":\"Authenticated user is not allowed to access this resource\"}"
-                            );
+                            ApiErrorResponseWriter.write(
+                                    request,
+                                    response,
+                                    org.springframework.http.HttpStatus.FORBIDDEN,
+                                    "Access denied");
                         })
                 )
 

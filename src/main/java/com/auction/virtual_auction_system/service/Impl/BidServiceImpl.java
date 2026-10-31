@@ -9,7 +9,6 @@ import com.auction.virtual_auction_system.entity.User;
 import com.auction.virtual_auction_system.exception.AuctionNotActiveException;
 import com.auction.virtual_auction_system.exception.InvalidBidException;
 import com.auction.virtual_auction_system.exception.ResourceNotFoundException;
-import com.auction.virtual_auction_system.exception.UnauthorizedAuctionActionException;
 import com.auction.virtual_auction_system.repository.AuctionRepository;
 import com.auction.virtual_auction_system.repository.BidRepository;
 import com.auction.virtual_auction_system.service.BidService;
@@ -66,7 +65,7 @@ public class BidServiceImpl implements BidService {
                 && bidder.getEmail().equalsIgnoreCase(
                 auction.getSeller().getEmail())) {
             // Sellers must not increase the price of their own auction.
-            throw new UnauthorizedAuctionActionException(
+            throw new InvalidBidException(
                     "Seller cannot bid on their own auction");
         }
 
