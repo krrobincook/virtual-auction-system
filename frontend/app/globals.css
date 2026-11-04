@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f1ea;
+  --foreground: #1d211e;
+  --surface: #fffdf8;
+  --surface-raised: #ffffff;
+  --muted: #e9e5dc;
+  --muted-foreground: #6d716a;
+  --border: #ded9ce;
+  --primary: #ed6248;
+  --primary-foreground: #fffaf4;
+  --secondary: #1d211e;
+  --secondary-foreground: #fffdf8;
+  --accent: #d8ef75;
+  --accent-foreground: #1d211e;
+  --ring: #ed6248;
+  --danger: #bb3f36;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+  --color-destructive: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-width: 320px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input[type="datetime-local"] {
+  min-width: 0;
+  width: 100%;
+}
+
+input[type="datetime-local"]::-webkit-datetime-edit {
+  min-width: 0;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  margin-left: 0.25rem;
+  opacity: 0.7;
+}
+
+.site-background {
+  background-color: var(--background);
+  background-image: linear-gradient(rgba(29, 33, 30, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 33, 30, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.site-main {
+  width: min(100% - 2rem, 1240px);
+  margin: 0 auto;
+  padding: 3.5rem 0 6rem;
+}
+
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.eyebrow {
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.display-title {
+  font-size: clamp(3rem, 8vw, 7.25rem);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  line-height: 0.88;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.06em;
+  line-height: 0.98;
+}
+
+.surface-grid {
+  background-color: var(--surface);
+  background-image: linear-gradient(rgba(29, 33, 30, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 33, 30, 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.soft-shadow {
+  box-shadow: 0 20px 60px rgba(29, 33, 30, 0.08);
+}
+
+.field-label {
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+  background: var(--background);
+}
+
+.auth-art {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  padding: 2rem clamp(2rem, 6vw, 6rem) 2.5rem;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.auth-art::before,
+.auth-art::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(216, 239, 117, 0.25);
+  border-radius: 999px;
+}
+
+.auth-art::before {
+  width: 35rem;
+  height: 35rem;
+  right: -13rem;
+  top: 10%;
+}
+
+.auth-art::after {
+  width: 24rem;
+  height: 24rem;
+  right: -6rem;
+  top: 22%;
+}
+
+.auth-content {
+  width: min(100% - 2rem, 520px);
+  margin: auto;
+  padding: 3rem 0;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    display: block;
+  }
+
+  .auth-art {
+    min-height: auto;
+    padding: 1.5rem;
+  }
+
+  .auth-art > :last-child {
+    display: none;
+  }
+
+  .auth-art::before {
+    width: 22rem;
+    height: 22rem;
+    right: -12rem;
+    top: -12rem;
+  }
+
+  .auth-content {
+    padding: 2rem 0 4rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-main {
+    width: min(100% - 1.25rem, 1240px);
+    padding: 2.5rem 0 4rem;
+  }
+}

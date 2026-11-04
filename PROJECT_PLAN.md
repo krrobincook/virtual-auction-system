@@ -9,8 +9,8 @@ The Online Auction System is a secure web application that allows authorized use
 - **Backend:** Java 17, Spring Boot, Spring Web, Spring Data JPA/Hibernate, Spring Security, JWT, Bean Validation
 - **Database:** MySQL
 - **Real-time updates:** WebSocket/STOMP
-- **Frontend:** React, React Router, Axios, a shared state solution such as Context API or Redux Toolkit
-- **Build and testing:** Maven, JUnit 5, Spring Boot Test, Mockito, React Testing Library
+- **Frontend:** Next.js App Router, TypeScript, Axios, Context API, and shared feature modules
+- **Build and testing:** Maven, JUnit 5, Spring Boot Test, Mockito, Next.js build checks, and React Testing Library
 
 ## 2. Current progress baseline
 
@@ -27,7 +27,7 @@ The repository is currently backend-first. The Spring Boot application starts fr
 | JWT security | Security classes are placeholders; only basic route rules exist | Implement token generation, authentication filter, and stateless security |
 | WebSocket | Configuration file is a placeholder | Add STOMP topics for bid and auction-status events |
 | Error handling | Exception classes and global handler are placeholders | Add typed exceptions and consistent API error responses |
-| React frontend | Not present in the repository yet | Create a separate React app and connect it to the backend |
+| Next.js frontend | Next.js App Router application is present under `frontend/` | Continue building the route segments and supporting modules against the backend |
 | Automated tests | Only the generated context test exists | Add unit, integration, security, real-time, and frontend tests |
 
 > Verification note: the Maven test command is currently blocked by the environment trying to create `C:\.m2\repository`. Configure a writable Maven local repository before treating the build as verified.
@@ -47,7 +47,7 @@ The repository is currently backend-first. The Spring Boot application starts fr
 
 ### Success criteria
 
-- A user can complete registration, login, auction creation, browsing, bidding, and logout from the React UI.
+- A user can complete registration, login, auction creation, browsing, bidding, and logout from the Next.js UI.
 - A bid is accepted only when the auction is active, the bidder is authorized, and the amount exceeds the current required amount.
 - Concurrent bids cannot produce an incorrect winner or lower current price.
 - An auction closes exactly once, records its winner when applicable, and rejects later bids.
@@ -92,7 +92,7 @@ The repository is currently backend-first. The Spring Boot application starts fr
 ### Backend layers
 
 ```text
-React client
+Next.js App Router client
    | REST / WebSocket
 Spring Security + JWT filter
    |
@@ -119,21 +119,35 @@ mapper/
 
 Keep entities internal to the backend boundary. Use response DTOs so persistence fields, password hashes, and implementation details are not exposed directly.
 
-### Frontend structure
+### Frontend structure (Next.js App Router)
 
 ```text
-src/
-  api/             Axios client and endpoint modules
-  auth/            Auth context, protected routes, token handling
-  components/      Shared UI components
-  features/
-    auctions/      List, detail, create/edit, timer, filters
-    bids/          Bid form and bidding history
-  pages/            Login, register, dashboard, auction pages
-  hooks/            Countdown, WebSocket, pagination hooks
-  routes/           Route definitions and guards
-  types/            API/domain types
+frontend/
+  app/                         App Router route segments and layouts
+    layout.tsx                 Root metadata, fonts, and document shell
+    client-layout.tsx          Client-only providers and global UI services
+    page.tsx                   Home route
+    login/page.tsx             Login route
+    register/page.tsx          Registration route
+    dashboard/page.tsx         Authenticated dashboard route
+    auctions/page.tsx          Auction listing route
+    auctions/create/page.tsx   Create-auction route
+    auctions/[id]/page.tsx     Auction detail route
+    auctions/[id]/edit/page.tsx Edit-auction route
+  src/                         Non-route application code
+    api/                       Axios client and endpoint modules
+    auth/                      Auth provider, session, and token handling
+    components/                Shared UI components
+    features/
+      auctions/                Auction feature UI and logic
+      bids/                     Bid form and bidding history
+    hooks/                      Countdown, WebSocket, and data hooks
+    lib/                        Formatting and utility functions
+    types/                      API and domain types
+  public/                      Static assets
 ```
+
+Use App Router folders for URL structure, layouts, loading/error boundaries, and route-level composition. Keep reusable client code in `src/`; do not add React Router, a separate `pages/` router, or a second frontend application.
 
 ## 6. Core data model
 
@@ -224,18 +238,18 @@ Use `BigDecimal` for monetary values and UTC timestamps (`Instant` or `OffsetDat
 
 **Exit condition:** multiple clients see accepted bids and status changes without refreshing, while REST remains the source of truth.
 
-### Phase 5 — React frontend
+### Phase 5 — Next.js frontend
 
-- [ ] Create the React app with TypeScript and a consistent styling/component approach.
+- [ ] Continue the Next.js App Router implementation with TypeScript and a consistent styling/component approach.
 - [ ] Add login and registration screens with validation and error states.
-- [ ] Add protected routing and token lifecycle handling.
+- [ ] Add protected route behavior and token lifecycle handling through Next.js layouts, middleware, or server/client guards as appropriate.
 - [ ] Build auction listing with search, status filters, sorting, and pagination.
 - [ ] Build auction detail page with server-synchronized countdown, current bid, bid form, and bidding history.
 - [ ] Build create/edit auction form with date/time validation.
 - [ ] Add dashboard views for owned auctions, active bids, won auctions, and multiple simultaneous auctions.
 - [ ] Add WebSocket subscription management, optimistic loading states, reconnect behavior, and toast notifications.
 - [ ] Add responsive layouts and accessible form/status components.
-- [ ] Add React component and flow tests.
+- [ ] Add Next.js component and flow tests.
 
 **Exit condition:** a user can complete the primary auction journey without using the API directly.
 
@@ -291,7 +305,7 @@ Use a consistent error shape, for example:
 - [ ] Keep JWT signing secrets outside source control.
 - [ ] Use short-lived access tokens and define a refresh strategy if required.
 - [ ] Validate and normalize email addresses and user input.
-- [ ] Enforce authorization in services, not only in the React UI.
+- [ ] Enforce authorization in services, not only in the Next.js UI.
 - [ ] Check auction ownership for every seller action.
 - [ ] Use server time for auction boundaries and monetary decisions.
 - [ ] Use transactions and concurrency control for bid acceptance.
@@ -335,8 +349,8 @@ Work vertically so each milestone produces a usable slice:
 3. Auction create/list/detail flow.
 4. Bid placement and bidding-history flow.
 5. Auction closure and winner selection.
-6. React authentication and auction browsing.
-7. React bid flow and multiple-auction dashboard.
+6. Next.js authentication and auction browsing.
+7. Next.js bid flow and multiple-auction dashboard.
 8. WebSocket updates and reconnect handling.
 9. Hardening, documentation, deployment, and end-to-end verification.
 
